@@ -29,4 +29,12 @@ To build the program in debug mode use the flag `-D CMAKE_BUILD_TYPE=Debug`. By 
 cmake -D CMAKE_BUILD_TYPE=Debug
 ```
 ## Using existing installs of dependencies
-Currently, the CMake script doesn't have an option to build using existing dependency installs. However, simply renaming the directories called 'lib' and 'include' changes where the script searches. Your own dependency installs **must** be in the default install locations. All dependencies must be installed for this workaround to work. An option will be added in the future to use existing dependecy installs.
+An option exists to use existing dependency installs. The `-D DEP_USE_EXISTING` CMake flag achieves this. Your own dependency installs **must** be in the default install locations. All dependencies must be installed for this option to work.
+```
+cmake -D DEP_USE_EXISTING=ON ..
+```
+## List the dependencies' file locations
+To ensure the correct dependency files are chosen by the CMake script, use the `-D DEP_LOCATIONS` flag.
+```
+cmake -D DEP_LOCATIONS
+```
