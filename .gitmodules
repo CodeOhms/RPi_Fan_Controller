@@ -1,0 +1,6 @@
+[submodule "sources/Modules"]
+	path = sources/Modules
+	url = /home/pi/Programming/C++/CustomLibs/
+[submodule "CustomLibs"]
+	path = CustomLibs
+	url = /home/pi/Programming/C++/CustomLibs/
