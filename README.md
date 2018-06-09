@@ -36,5 +36,5 @@ cmake -D DEP_USE_EXISTING=ON ..
 ## List the dependencies' file locations
 To ensure the correct dependency files are chosen by the CMake script, use the `-D DEP_LOCATIONS` flag.
 ```
-cmake -D DEP_LOCATIONS
+cmake -D DEP_LOCATIONS ..
 ```
