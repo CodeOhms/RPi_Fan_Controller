@@ -17,7 +17,9 @@ add_executable(FanController
 )
 
 #Setup libraries
-set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}")
+if(NOT DEP_USE_EXISTING)
+    set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}")
+endif()
 find_library(Fmt_Dir fmt       REQUIRED)
 find_library(Pigpio_Dir pigpio REQUIRED)
 
@@ -32,7 +34,9 @@ endforeach()
 
 set(Libs pthread ${Libs} ${FSystem_Libs} ${Logging_Libs})
 target_link_libraries(FanController PRIVATE ${Libs})
-message("Libs = ${Libs}\n")
+if(DEP_LOCATIONS)
+    message("Libs = ${Libs}\n")
+endif()
 
 #Install precompiled libs if executable should be moved around
 option(PORTABLE "Install prebuilt libraries" ON)
