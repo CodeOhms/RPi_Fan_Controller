@@ -1,0 +1,13 @@
+[Unit]
+Description = controlls fans connected to GPIO pins
+
+[Service]
+Type = simple
+User = root
+ExecStart  = @Program_Path@
+ExecStop   = /bin/kill -SIGINT $MAINPID
+ExecReload = /bin/kill -SIGHUP $MAINPID
+Restart    = on-failure
+
+[Install]
+WantedBy = multi-user.target

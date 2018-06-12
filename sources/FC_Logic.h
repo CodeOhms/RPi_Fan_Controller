@@ -1,15 +1,17 @@
 #ifndef   FC_LOGIC_H
 #define   FC_LOGIC_H
 
+#include <mutex>
+#include <memory>
 #include <vector>
 #include <tuple>
 #include <map>
 #include <pigpio.h>
-#include "Modules/Misc_Tools/Time_Tools/include/Timer.h"
-#include "Modules/Misc_Tools/Time_Tools/include/Time_Tools.h"
-#include "Modules/Misc_Tools/Thermal_Tools/include/Thermal.h"
-#include "Modules/File_System_Tools/include/FSystem_Tools.h"
-#include "Modules/Log_Tools/include/Log_Command.h"
+#include "Modules/Misc_Tools/Time_Tools/sources/Timer.h"
+#include "Modules/Misc_Tools/Time_Tools/sources/Time_Tools.h"
+#include "Modules/Misc_Tools/Thermal_Tools/sources/Thermal.h"
+#include "Modules/File_System_Tools/sources/FSystem_Tools.h"
+#include "Modules/Log_Tools/sources/Log_Command.h"
 #include "location_config.h"
 #include "FC_Commands.h"
 #include "FC_Log.hpp"
@@ -63,8 +65,9 @@ struct ControLogicData
 
 class ControLogic
 {
-    ControLogicData& Data;
-
+    //Protect 'Data' variable
+    std::mutex dataMutex;
+    ControLogicData Data;
     FCLog&                DebugLog;
     FanControl            FControl;
     Thermal::ThermalStats RPIHeat;
@@ -75,8 +78,15 @@ class ControLogic
     bool runFan();
 
     public:
-        ControLogic( FCLog& Log, ControLogicData& Data )
+        ControLogic( FCLog& Log, ControLogicData Data )
           : DebugLog(Log), Data(Data), FControl(DebugLog) { }
+
+        void changeData(ControLogicData newData)
+        {
+            dataMutex.lock();
+            Data = newData;
+            dataMutex.unlock();
+        }
         bool stopFans();
 
         bool tempCheck();
@@ -87,7 +97,7 @@ namespace Setup
 {
     bool readConfig( ControLogicData& Data, std::string& initError );
 
-    ControLogic createLogic( FCLog& Log, ControLogicData& LogicData,
+    std::shared_ptr<ControLogic> createLogic( FCLog& Log, ControLogicData,
       bool& bSuccess, std::string& error );
 }
 
@@ -97,24 +107,26 @@ class AutoFan
     bool initialised = false;
     std::string initError;
 
-    FCLog           DebugLog;
-    ControLogicData LogicData;
-    ControLogic     FanController;
-
-    Timer           CheckTemp;
+    FCLog                        DebugLog;
+    ControLogicData              LogicData;
+    std::shared_ptr<ControLogic> FanController;
+    Timer                        CheckTemp;
 
     void runCheck()
     {
-        if( !FanController.tempCheck() )
+        if( !FanController->tempCheck() )
             stop();
     }
 
     public:
-        AutoFan() : FanController( Setup::createLogic(DebugLog, LogicData,
-                                   initialised, initError) ) { }
-
         bool initialise( std::string& error )
         {
+            ControLogicData tempData;
+            Setup::readConfig(tempData, error);
+
+            FanController = Setup::createLogic(DebugLog, tempData,
+              initialised, initError);
+
             //Check if createLogic succeeded
             if(!initialised)
             {
@@ -130,13 +142,13 @@ class AutoFan
                 return initialised;
             }
 
-            for(unsigned pin=0; pin <= LogicData.numGPIOPins; pin++)
+            for(unsigned pin=0; pin < tempData.numGPIOPins; pin++)
             {
                 int result = gpioSetPWMrange(pin, 100);
                 if( (result == PI_BAD_USER_GPIO) ||
                   (result == PI_BAD_DUTYRANGE) )
                 {
-                    error =  "Pigpio library failed to change PWM range!";
+                    error = "Pigpio library failed to change PWM range!";
                     gpioTerminate();
                     initialised = false;
                     return initialised;
@@ -144,8 +156,8 @@ class AutoFan
             }
 
             CheckTemp.setFunction( std::bind(&AutoFan::runCheck, this) );
-            initialised = CheckTemp.setInterval(LogicData.interval);
-            initialised = CheckTemp.setIntervalUnit(LogicData.intervalUnit);
+            initialised = CheckTemp.setInterval(tempData.interval);
+            initialised = CheckTemp.setIntervalUnit(tempData.intervalUnit);
             initialised = CheckTemp.setRepetitions(Timer::infinite);
             initialised = CheckTemp.init();
             if(!initialised)
@@ -165,16 +177,36 @@ class AutoFan
             DebugLog.report( message, verbosity );
         }
 
-        void start()
+        bool start()
         {
             if(initialised)
+            {
                 CheckTemp.start(false);
+                return true; //Return after CheckTemp stopped by signal thread
+            }
+
+            this->log("Failed to start logic loop");
+            return false;
         }
         void stop()
         {
             CheckTemp.stop();
-            FanController.stopFans();
+            if( !FanController->stopFans() )
+                this->log("Failed to stop fans");
             gpioTerminate();
+        }
+        bool restart()
+        {
+            //Reload configuration file
+            std::string problem;
+            ControLogicData newData; //ControLogic will copy this
+            if( Setup::readConfig(newData, problem) )
+            {
+                FanController->changeData(newData);
+                return true;
+            }
+            this->log("Failed to reload configuration file\n" +problem);
+            return false;
         }
 
 };

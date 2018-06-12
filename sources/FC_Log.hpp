@@ -2,8 +2,8 @@
 #define   FC_LOG_HPP
 
 #include <string>
-#include "Modules/Log_Tools/include/Log_Command.h"
-#include "Modules/Misc_Tools/Time_Tools/include/Time_Tools.h"
+#include "Modules/Log_Tools/sources/Log_Command.h"
+#include "Modules/Misc_Tools/Time_Tools/sources/Time_Tools.h"
 #include "location_config.h"
 #include "FC_IO.h"
 

@@ -113,8 +113,13 @@ bool ControLogic::stopFans()
 
 bool ControLogic::tempCheck()
 {
+    dataMutex.lock();
     if( !runFan() )
+    {
+        dataMutex.unlock();
         return false;
+    }
+    dataMutex.unlock();
     return true;
 }
 
@@ -257,19 +262,21 @@ namespace Setup
         return true;
     }
 
-    ControLogic createLogic( FCLog& Log, ControLogicData& LogicData,
-      bool& bSuccess, std::string& error )
+    std::shared_ptr<ControLogic> createLogic( FCLog& Log,
+      ControLogicData TempData, bool& bSuccess, std::string& error )
     {
-        if( readConfig(LogicData, error) )
+        //TempData will be copied by ControLogic to avoid subverting mutex
+        std::shared_ptr<ControLogic> tempLogic;
+        if( readConfig(TempData, error) )
         {
             bSuccess = true;
-            ControLogic tempLogic(Log, LogicData);
-            return tempLogic;
+            tempLogic = std::make_shared<ControLogic>(Log, TempData);
         }
+        else
+            bSuccess = false;
 
-        bSuccess = false;
-        ControLogic failed(Log, LogicData);
-        return failed;
+        tempLogic = std::make_shared<ControLogic>(Log, TempData);
+        return tempLogic;
     }
 
 }

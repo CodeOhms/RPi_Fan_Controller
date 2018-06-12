@@ -11,14 +11,24 @@ static sigset_t sigMask;
 //Run in own thread as read() blocks thread
 void signalHandler(AutoFan& Driver)
 {
-    auto quit = [&] () ->void
-        { Driver.stop(); };
-    auto log = [&] (string message, unsigned line)
+    int sigFD;
+    auto quit = [&] () -> void
+    {
+        Driver.stop();
+        close(sigFD);
+    };
+    auto restart = [&] () -> void
+    {
+        //First, this reloads the config. Next, it restarts the logic loop
+        if( !Driver.restart() )
+            quit();
+    };
+    auto log = [&] (string message, unsigned line) -> void
     {
         Driver.log(message, __FILE__, __FUNCTION__, line);
     };
 
-    int sigFD = signalfd(-1, &sigMask, 0);
+    sigFD = signalfd(-1, &sigMask, 0);
     if(sigFD < 0)
     {
         log("signalfd failed to create file descriptor", __LINE__);
@@ -45,7 +55,7 @@ void signalHandler(AutoFan& Driver)
             return;
         }
 
-        if(sigInfo.ssi_signo = SIGTERM)
+        if(sigInfo.ssi_signo     = SIGTERM)
         {
             quit();
             return;
@@ -53,6 +63,12 @@ void signalHandler(AutoFan& Driver)
         else if(sigInfo.ssi_signo = SIGINT)
         {
             quit();
+            return;
+        }
+        else if(sigInfo.ssi_signo = SIGHUP)
+        {
+            Driver.log("Restarting", 2);//Verbosity = debug
+            restart();
             return;
         }
         else
@@ -66,36 +82,43 @@ void signalHandler(AutoFan& Driver)
 
 }
 
+bool setup(AutoFan& FDriver)
+{
+    string driverError;
+    //Logging is still okay to use even if this fails
+    if( !FDriver.initialise(driverError) )
+    {
+        FDriver.log(driverError);
+        return false;
+    }
+    return true;
+
+}
 int main()
 {
-    bool bStart = true;
+    bool bSignals = true;
 
     //Block signals. File descriptor thread handles this
     sigemptyset(&sigMask);
     sigaddset( &sigMask, SIGINT );
     sigaddset( &sigMask, SIGTERM );
     if( sigprocmask( SIG_BLOCK, &sigMask, NULL ) < 0 )
-        bStart = false;
+        bSignals = false;
 
     AutoFan FanDriver;
-    string driverError;
-    //Logging is still okay to use even if this fails
-    if( !FanDriver.initialise(driverError) )
-    {
-        bStart = false;
-        FanDriver.log(driverError);
-    }
-    else if(!bStart)
-    {
-        bStart = false;
-        FanDriver.log("Unable to block signals. Terminating now.");
-    }
-    if(!bStart)
+    if( !setup(FanDriver) )
         return 1;
+
+    if(!bSignals)
+    {
+        FanDriver.log("Unable to block signals. Terminating now.");
+        return 1;
+    }
 
     thread sigHandle(signalHandler, ref(FanDriver));
 
-    FanDriver.start();
+    if( !FanDriver.start() )
+        return 1;
 
     sigHandle.join();
     return 0;

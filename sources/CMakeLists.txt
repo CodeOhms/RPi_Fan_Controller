@@ -1,12 +1,17 @@
 #Static module libs => FSystem, Logging, Time and Thermal
 add_subdirectory(Modules)
 
-#Create location_config.h
-set(Usr_Files_Dir "$ENV{HOME}/.FanController")
-set(Config_Path "${Usr_Files_Dir}/FanController.conf")
-set(Log_Path    "${Usr_Files_Dir}/FC_Debug.log")
+#Set common variables
+set(Program_Path "${CMAKE_INSTALL_PREFIX}/bin/FanController")
+set(Prog_Files_Dir "${CMAKE_INSTALL_PREFIX}/etc/.FanController")
+set(Config_Path "${Prog_Files_Dir}/FanController.conf")
+set(Log_Path    "${Prog_Files_Dir}/FC_Debug.log")
+
+#Configure files
 configure_file(location_config.h.in
-               "${CMAKE_SOURCE_DIR}/sources/location_config.h" @ONLY)
+               "${CMAKE_CURRENT_SOURCE_DIR}/location_config.h" @ONLY)
+configure_file("${CMAKE_SOURCE_DIR}/FanController.service.in"
+               "${CMAKE_SOURCE_DIR}/FanController.service" @ONLY)
 
 #Add source files to executable target
 set(FC_Srcs FanController.cpp FC_Logic.cpp FC_IO.cpp)
@@ -49,4 +54,6 @@ endif()
 
 install(TARGETS FanController RUNTIME DESTINATION bin)
 install(FILES "${CMAKE_SOURCE_DIR}/FanController.conf"
-  DESTINATION "${Usr_Files_Dir}" )
+  DESTINATION "${Prog_Files_Dir}" )
+install(FILES "${CMAKE_SOURCE_DIR}/FanController.service"
+  DESTINATION /usr/lib/systemd/system)
