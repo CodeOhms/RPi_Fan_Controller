@@ -142,7 +142,7 @@ class AutoFan
                 return initialised;
             }
 
-            for(unsigned pin=0; pin < tempData.numGPIOPins; pin++)
+            for(unsigned pin=0; pin <= tempData.numGPIOPins; pin++)
             {
                 int result = gpioSetPWMrange(pin, 100);
                 if( (result == PI_BAD_USER_GPIO) ||
