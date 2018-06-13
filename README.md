@@ -2,6 +2,11 @@
 A simple program to control fans connected to RPi GPIO pins.
 
 # Building
+## Using build script
+Included in the root is a file called 'buildFC.sh'. It will require sudo permissions to install built files, and to install the software as a service. A systemd unit file is used to achieve this.
+
+## Using CMake script
+
 ## Default
 For convienience, third party dependencies are included. Each dependency that needs compiling is included, pre-compiled. By default, the CMake script uses these local versions of dependencies to build the program. Simply run this for the default make:
 ```
