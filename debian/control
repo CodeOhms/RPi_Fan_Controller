@@ -1,0 +1,14 @@
+Source: fancontroller
+Section: unknown
+Priority: optional
+Maintainer: Zacharia Henderson <CodeOhms@protonmail.com>
+Build-Depends: debhelper (>= 9), libboost-system-dev (>= 1.62.0), libboost-filesystem-dev(>= 1.62.0)
+Standards-Version: 3.9.8
+Vcs-Git: https://github.com/CodeOhms/RPi_Fan_Controller.git
+Vcs-Browser: https://github.com/CodeOhms/RPi_Fan_Controller
+
+Package: fancontroller
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

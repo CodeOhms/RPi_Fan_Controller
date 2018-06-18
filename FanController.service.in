@@ -5,8 +5,8 @@ Description = controlls fans connected to GPIO pins
 Type = simple
 User = root
 ExecStart  = @Program_Path@
-ExecStop   = /bin/kill -SIGINT $MAINPID
-ExecReload = /bin/kill -SIGHUP $MAINPID
+ExecStop   = /bin/kill -s SIGINT $MAINPID
+ExecReload = /bin/kill -s SIGHUP $MAINPID
 Restart    = on-failure
 
 [Install]

@@ -1,0 +1,3 @@
+shlibs:Depends=fancontroller, libc6 (>= 2.17), libgcc1 (>= 1:3.5), libstdc++6 (>= 6)
+misc:Depends=
+misc:Pre-Depends=

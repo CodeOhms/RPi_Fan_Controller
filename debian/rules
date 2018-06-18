@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+#export DH_VERBOSE = 1
+
+#use system libs instead of convience libs
+override_dh_auto_configure:
+	dh_auto_configure -- -DCMAKE_BUILD_TYPE=Release -DDEP_USE_EXISTING=ON
+
+%:
+	dh $@ --builddirectory=builddir

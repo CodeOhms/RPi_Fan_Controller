@@ -55,7 +55,7 @@ void signalHandler(AutoFan& Driver)
             return;
         }
 
-        if(sigInfo.ssi_signo     = SIGTERM)
+        if(sigInfo.ssi_signo      = SIGTERM)
         {
             quit();
             return;
@@ -102,6 +102,7 @@ int main()
     sigemptyset(&sigMask);
     sigaddset( &sigMask, SIGINT );
     sigaddset( &sigMask, SIGTERM );
+    sigaddset( &sigMask, SIGHUP );
     if( sigprocmask( SIG_BLOCK, &sigMask, NULL ) < 0 )
         bSignals = false;
 
