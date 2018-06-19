@@ -18,6 +18,17 @@ temperatures, provided by chosen sensors, should be checked against associated
 'trigger ranges'. If you require any more information about configuration,
 please read the [config file](FanController.conf) first before inquiring :).
 
+# Installing
+Installing this program is as easy as downloading the latest debian package and installing it.
+`apt-get` or `dpkg` are both vaild options for installing deb packages.
+#### dpkg
+```
+sudo dpkg -i [deb package]
+```
+#### apt-get
+```
+sudo apt-get install [deb package]
+```
 # Building
 ## Using build script
 Included in the root is a file called 'buildFC.sh'. It will require
