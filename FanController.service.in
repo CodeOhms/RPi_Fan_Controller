@@ -8,6 +8,8 @@ ExecStart  = @Program_Path@
 ExecStop   = /bin/kill -s SIGINT $MAINPID
 ExecReload = /bin/kill -s SIGHUP $MAINPID
 Restart    = on-failure
+KillSignal  = SIGINT
+SendSIGKILL = false
 
 [Install]
 WantedBy = multi-user.target
