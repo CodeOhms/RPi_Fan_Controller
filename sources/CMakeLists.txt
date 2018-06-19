@@ -3,7 +3,7 @@ add_subdirectory(Modules)
 
 #Set common variables
 set(Program_Path "${CMAKE_INSTALL_PREFIX}/bin/FanController")
-set(Prog_Files_Dir "${CMAKE_INSTALL_PREFIX}/etc/.FanController")
+set(Prog_Files_Dir "${CMAKE_INSTALL_PREFIX}/etc/FanController")
 set(Config_Path "${Prog_Files_Dir}/FanController.conf")
 set(Log_Path    "${Prog_Files_Dir}/FC_Debug.log")
 

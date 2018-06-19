@@ -6,12 +6,16 @@
 
 using namespace std;
 
-static sigset_t sigMask;
-
 //Run in own thread as read() blocks thread
 void signalHandler(AutoFan& Driver)
 {
+    sigset_t sigBlock;
+    sigaddset( &sigBlock, SIGINT );
+    sigaddset( &sigBlock, SIGTERM );
+    sigaddset( &sigBlock, SIGHUP );
+
     int sigFD;
+
     auto quit = [&] () -> void
     {
         Driver.stop();
@@ -28,7 +32,7 @@ void signalHandler(AutoFan& Driver)
         Driver.log(message, __FILE__, __FUNCTION__, line);
     };
 
-    sigFD = signalfd(-1, &sigMask, 0);
+    sigFD = signalfd(-1, &sigBlock, 0);
     if(sigFD < 0)
     {
         log("signalfd failed to create file descriptor", __LINE__);
@@ -41,7 +45,6 @@ void signalHandler(AutoFan& Driver)
     do
     {
         result = read(sigFD, &sigInfo, sizeof(sigInfo));
-
         if(result < 0)
         {
             log("read of sigFD failed", __LINE__);
@@ -55,21 +58,20 @@ void signalHandler(AutoFan& Driver)
             return;
         }
 
-        if(sigInfo.ssi_signo      = SIGTERM)
+        if(sigInfo.ssi_signo      == SIGTERM)
         {
             quit();
             return;
         }
-        else if(sigInfo.ssi_signo = SIGINT)
+        else if(sigInfo.ssi_signo == SIGINT)
         {
             quit();
             return;
         }
-        else if(sigInfo.ssi_signo = SIGHUP)
+        else if(sigInfo.ssi_signo == SIGHUP)
         {
             Driver.log("Restarting", 2);//Verbosity = debug
             restart();
-            return;
         }
         else
         {
@@ -96,13 +98,11 @@ bool setup(AutoFan& FDriver)
 }
 int main()
 {
+    sigset_t sigMask;
     bool bSignals = true;
 
-    //Block signals. File descriptor thread handles this
-    sigemptyset(&sigMask);
-    sigaddset( &sigMask, SIGINT );
-    sigaddset( &sigMask, SIGTERM );
-    sigaddset( &sigMask, SIGHUP );
+    //Block all signals. File descriptor thread handles this
+    sigfillset(&sigMask);
     if( sigprocmask( SIG_BLOCK, &sigMask, NULL ) < 0 )
         bSignals = false;
 
