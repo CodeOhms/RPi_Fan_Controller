@@ -19,8 +19,10 @@ temperatures, provided by chosen sensors, should be checked against associated
 please read the [config file](FanController.conf) first before inquiring :).
 
 # Installing
-Installing this program is as easy as downloading the latest debian package and installing it.
+Installing this program is as easy as downloading the latest debian package
+and installing it.
 `apt-get` or `dpkg` are both vaild options for installing deb packages.
+The packages can be [downloaded from here](https://github.com/CodeOhms/RPi_Fan_Controller/releases).
 #### dpkg
 ```
 sudo dpkg -i [deb package]
